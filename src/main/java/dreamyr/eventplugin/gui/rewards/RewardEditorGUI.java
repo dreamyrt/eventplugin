@@ -8,11 +8,19 @@ import org.bukkit.inventory.Inventory;
 
 public class RewardEditorGUI {
 
-    public static void open(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 54, "🎁 Редактор нагород");
+    private static final String TITLE_PREFIX = "🎁 Редактор нагород: ";
 
-        gui.setItem(53, new ItemBuilder(Material.LIME_CONCRETE).setName("&a💾 Зберегти нагороди").build());
+    public static void open(Player player, String zoneKey) {
+        Inventory gui = Bukkit.createInventory(null, 54, TITLE_PREFIX + zoneKey);
+
+        gui.setItem(53, new ItemBuilder(Material.LIME_CONCRETE)
+                .setName("&a💾 Зберегти нагороди")
+                .build());
 
         player.openInventory(gui);
+    }
+
+    public static void open(Player player) {
+        open(player, "default");
     }
 }
