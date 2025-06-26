@@ -1,0 +1,19 @@
+eventblock_rewards:
+  default:
+    - item: DIAMOND
+      amount: 3
+      name: "§bДіамант"
+      lore:
+        - "Нагорода за івент-блок"
+    - item: GOLD_INGOT
+      amount: 5
+
+combatzone_rewards:
+  easy:
+    - item: IRON_SWORD
+      amount: 1
+      name: "§aЗалєзний меч"
+  hard:
+    - item: DIAMOND_SWORD
+      amount: 1
+      name: "§cАлмазний меч"

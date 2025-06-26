@@ -1,0 +1,15 @@
+
+  name: EventPlugin
+  main: dreamyr.eventplugin.EventPlugin
+  version: 1.0
+  api-version: 1.21
+  commands:
+    eventblock:
+      description: Управління івент-блоками
+      permission: eventplugin.admin
+    combatzone:
+      description: Управління бойовими зонами
+      permission: eventplugin.admin
+  permissions:
+    eventplugin.admin:
+      default: op

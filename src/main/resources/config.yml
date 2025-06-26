@@ -1,0 +1,24 @@
+combatzones:
+  jungle_fight:
+    world: world
+    x: 100.5
+    y: 64
+    z: -200.5
+    scale_per_player: 2
+    waves:
+      wave1:
+        mob: ZOMBIE
+        amount: 3
+        delay: 100
+      wave2:
+        mob: SKELETON
+        amount: 2
+        delay: 120
+    effects:
+      speed:
+        effect: SPEED
+        duration: 200
+        amplifier: 1
+        ambient: false
+        particles: true
+        delay: 0

@@ -1,0 +1,21 @@
+event_blocks:
+  jungle_block:
+    location: world,100,65,200
+    required:
+      QUARTZ: 5
+      IRON_INGOT: 10
+    progress:
+      QUARTZ: 3
+      IRON_INGOT: 2
+    participants:
+      - uuid1
+      - uuid2
+    combat_zone: jungle_zone
+
+eventblock_rewards:
+  jungle_block:
+    - item: DIAMOND
+      amount: 2
+      name: "&bДіамант"
+      lore:
+        - "&7Рідкісний скарб"
