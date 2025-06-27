@@ -13,14 +13,16 @@ public class RewardEditorGUI {
     public static void open(Player player, String zoneKey) {
         Inventory gui = Bukkit.createInventory(null, 54, TITLE_PREFIX + zoneKey);
 
-        gui.setItem(53, new ItemBuilder(Material.LIME_CONCRETE)
-                .setName("&a💾 Зберегти нагороди")
-                .build());
+        gui.setItem(53, new ItemBuilder(Material.LIME_CONCRETE).setName("&a💾 Зберегти нагороди").build());
 
         player.openInventory(gui);
     }
 
-    public static void open(Player player) {
-        open(player, "default");
+    public static String getZoneKeyFromTitle(String title) {
+        return title.substring(TITLE_PREFIX.length());
+    }
+
+    public static boolean isRewardEditorTitle(String title) {
+        return title.startsWith(TITLE_PREFIX);
     }
 }

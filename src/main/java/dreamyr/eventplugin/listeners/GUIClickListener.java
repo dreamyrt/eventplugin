@@ -1,5 +1,6 @@
 package dreamyr.eventplugin.listeners;
 
+import dreamyr.eventplugin.gui.CombatZoneConfigGUI;
 import dreamyr.eventplugin.managers.EventBlockManager;
 import dreamyr.eventplugin.util.RewardSystem;
 import org.bukkit.Bukkit;
@@ -28,25 +29,36 @@ public class GUIClickListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
         Inventory inventory = event.getInventory();
-        if (inventory == null || !event.getView().getTitle().equals("Івент-Блок")) return;
+        String title = event.getView().getTitle();
+        if (inventory == null || !title.startsWith("Івент-Блок: ")) return;
 
         event.setCancelled(true);
 
-        int slot = event.getRawSlot();
-        if (slot != 26) return; // Кнопка Завершити
-
         UUID playerId = player.getUniqueId();
-        String eventKey = eventBlockManager.getEventKeyByPlayer(playerId);
-        if (eventKey == null) {
-            player.sendMessage("§cПомилка: немає прив’язки до івент-блоку.");
+        String eventKey = title.substring("Івент-Блок: ".length());
+
+        int slot = event.getRawSlot();
+
+        // 🔴 Завершити (слот 16)
+        if (slot == 16) {
+            handleFinish(player, eventKey);
             return;
         }
 
-        // Збір кількості ресурсів у гравця
+        // ⚔️ Налаштувати бойову зону (слот 22)
+        if (slot == 22) {
+            CombatZoneConfigGUI.open(player, eventKey);
+        }
+    }
+
+    private void handleFinish(Player player, String eventKey) {
+        // Перевірка ресурсів
         Map<Material, Integer> currentInv = new HashMap<>();
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null) continue;
-            currentInv.put(item.getType(), currentInv.getOrDefault(item.getType(), 0) + item.getAmount());
+            currentInv.put(item.getType(),
+                    currentInv.getOrDefault(item.getType(), 0)
+                            + item.getAmount());
         }
 
         if (!eventBlockManager.hasEnoughResources(eventKey, currentInv)) {
@@ -54,20 +66,19 @@ public class GUIClickListener implements Listener {
             return;
         }
 
+        // Підтвердження
         long now = System.currentTimeMillis();
-        if (!confirmTimestamps.containsKey(playerId) || now - confirmTimestamps.get(playerId) > CONFIRM_TIMEOUT) {
-            confirmTimestamps.put(playerId, now);
+        if (!confirmTimestamps.containsKey(player.getUniqueId())
+                || now - confirmTimestamps.get(player.getUniqueId()) > CONFIRM_TIMEOUT) {
+            confirmTimestamps.put(player.getUniqueId(), now);
             player.sendMessage("§eНатисни ще раз протягом 5 секунд для підтвердження.");
             return;
         }
-
-        // Підтверджено
-        confirmTimestamps.remove(playerId);
+        confirmTimestamps.remove(player.getUniqueId());
 
         // Видача нагород
         Set<UUID> participants = eventBlockManager.getParticipants(eventKey);
         List<ItemStack> rewards = eventBlockManager.getReward("default");
-
         for (UUID uuid : participants) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
@@ -75,6 +86,7 @@ public class GUIClickListener implements Listener {
             }
         }
 
+        // Очищення
         eventBlockManager.clearEvent(eventKey);
         player.sendMessage("§aІвент завершено! Нагороди видано.");
         player.closeInventory();

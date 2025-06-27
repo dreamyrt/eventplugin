@@ -11,9 +11,7 @@ public class CombatZoneConfigGUI {
     private static final String TITLE_PREFIX = "⚔️ Налаштування бойової зони: ";
 
     /**
-     * Відкриває інтерфейс налаштування бойової зони для конкретного ключа.
-     * @param player гравець, що відкриває GUI
-     * @param zoneKey ключ бойової зони
+     * Відкриває меню налаштування CombatZone із заданим ключем.
      */
     public static void open(Player player, String zoneKey) {
         Inventory gui = Bukkit.createInventory(null, 27, TITLE_PREFIX + zoneKey);
@@ -34,9 +32,7 @@ public class CombatZoneConfigGUI {
         player.openInventory(gui);
     }
 
-    /**
-     * Для сумісності: відкриває GUI без ключа (zoneKey = "default").
-     */
+    /** Для швидких тестів без ключа */
     public static void open(Player player) {
         open(player, "default");
     }

@@ -16,29 +16,17 @@ public class EventBlockManager {
 
     private final EventPlugin plugin;
 
-    // Ресурси, які потрібні для кожного івент-блоку
     private final Map<String, Map<Material, Integer>> requiredResources = new HashMap<>();
-
-    // Ресурси, здані на кожен івент-блок
     private final Map<String, Map<Material, Integer>> submittedResources = new HashMap<>();
-
-    // Учасники івент-блоку
     private final Map<String, Set<UUID>> participants = new HashMap<>();
-
-    // Відповідність гравця до івент-блоку
     private final Map<UUID, String> playerEventMap = new HashMap<>();
-
-    // Нагороди для кожного івент-блоку
     private final Map<String, List<ItemStack>> rewardsMap = new HashMap<>();
-
-    // Чи активний бойовий режим для кожного івент-блоку
     private final Map<String, Boolean> isCombatEnabled = new HashMap<>();
 
     public EventBlockManager(EventPlugin plugin) {
         this.plugin = plugin;
     }
 
-    // Створення івент-блоку з можливістю вказати чи потрібен бій
     public void createEventBlock(Location location, Player creator, boolean combatEnabled) {
         String key = generateKey(location);
 
@@ -71,20 +59,15 @@ public class EventBlockManager {
         submittedResources.computeIfAbsent(key, k -> new HashMap<>())
                 .merge(mat, amount, Integer::sum);
 
-        // Перевірка чи достатньо ресурсів
         if (hasEnoughResources(key)) {
             if (isCombatEnabled.getOrDefault(key, true)) {
-                // Якщо бій активний — запускаємо бій
                 plugin.getCombatZoneManager().startCombat(key);
             } else {
-                // Якщо бій вимкнений — даємо нагороду одразу
                 List<ItemStack> rewards = getReward(key);
                 for (ItemStack reward : rewards) {
                     player.getInventory().addItem(reward);
                 }
                 player.sendMessage("§aВи здали ресурси і отримали нагороду!");
-
-                // Очищаємо івент-блок після видачі нагороди
                 clearEvent(key);
             }
             saveAll();
@@ -100,6 +83,17 @@ public class EventBlockManager {
 
         for (Map.Entry<Material, Integer> entry : required.entrySet()) {
             if (submitted.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
+        }
+        return true;
+    }
+
+    public boolean hasEnoughResources(String key, Map<Material, Integer> currentInventory) {
+        Map<Material, Integer> required = requiredResources.get(key);
+        if (required == null) return false;
+
+        for (Map.Entry<Material, Integer> entry : required.entrySet()) {
+            int have = currentInventory.getOrDefault(entry.getKey(), 0);
+            if (have < entry.getValue()) return false;
         }
         return true;
     }
@@ -128,6 +122,14 @@ public class EventBlockManager {
         return rewardsMap.getOrDefault(key, Collections.emptyList());
     }
 
+    public void clearEvent(String key) {
+        requiredResources.remove(key);
+        submittedResources.remove(key);
+        participants.remove(key);
+        isCombatEnabled.remove(key);
+        playerEventMap.values().removeIf(val -> val.equals(key));
+    }
+
     public void loadAll() {
         loadFromConfig();
         loadRewards();
@@ -150,7 +152,6 @@ public class EventBlockManager {
 
         for (String key : blocks.getKeys(false)) {
             try {
-                // Required
                 ConfigurationSection reqSec = blocks.getConfigurationSection(key + ".required");
                 Map<Material, Integer> reqMap = new HashMap<>();
                 if (reqSec != null) {
@@ -162,7 +163,6 @@ public class EventBlockManager {
                 }
                 requiredResources.put(key, reqMap);
 
-                // Submitted
                 ConfigurationSection subSec = blocks.getConfigurationSection(key + ".submitted");
                 Map<Material, Integer> subMap = new HashMap<>();
                 if (subSec != null) {
@@ -174,7 +174,6 @@ public class EventBlockManager {
                 }
                 submittedResources.put(key, subMap);
 
-                // Participants
                 List<String> uuidList = blocks.getStringList(key + ".participants");
                 Set<UUID> uuidSet = new HashSet<>();
                 for (String uuidStr : uuidList) {
@@ -186,7 +185,6 @@ public class EventBlockManager {
                 }
                 participants.put(key, uuidSet);
 
-                // Combat enabled
                 boolean combat = blocks.getBoolean(key + ".combat_enabled", true);
                 isCombatEnabled.put(key, combat);
 
@@ -215,7 +213,6 @@ public class EventBlockManager {
             List<String> uuidList = parts.stream().map(UUID::toString).toList();
             config.set("eventblocks." + key + ".participants", uuidList);
 
-            // Зберігаємо combat_enabled
             boolean combat = isCombatEnabled.getOrDefault(key, true);
             config.set("eventblocks." + key + ".combat_enabled", combat);
         }
@@ -253,13 +250,5 @@ public class EventBlockManager {
 
             rewardsMap.put(key, rewardItems);
         }
-    }
-
-    public void clearEvent(String key) {
-        requiredResources.remove(key);
-        submittedResources.remove(key);
-        participants.remove(key);
-        isCombatEnabled.remove(key);
-        playerEventMap.values().removeIf(val -> val.equals(key));
     }
 }

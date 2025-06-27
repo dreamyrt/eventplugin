@@ -50,6 +50,7 @@ public class CombatZoneManager {
         CombatWave wave = zone.getWaves().get(index);
         int count = wave.getMobAmount() + (players.size() - 1) * zone.getScalePerPlayer();
 
+        // Спавн мобів
         Bukkit.getScheduler().runTask(plugin, () -> {
             for (int i = 0; i < count; i++) {
                 Location spawn = zone.getSpawnLocation();
@@ -58,7 +59,7 @@ public class CombatZoneManager {
             }
         });
 
-        // Ефекти кожному гравцю
+        // Накладення ефектів
         EffectScheduler scheduler = new EffectScheduler(plugin);
         for (Player p : players) {
             scheduler.scheduleEffects(zone.getEffects(), p);
@@ -74,6 +75,7 @@ public class CombatZoneManager {
     private void finishCombat(String zoneKey, Set<Player> players) {
         CombatZone zone = zones.get(zoneKey);
         if (zone == null) return;
+
         for (Player p : players) {
             RewardSystem.giveReward(p, zone.getRewards());
             p.sendMessage("§aВи перемогли в CombatZone: " + zoneKey);
@@ -96,6 +98,7 @@ public class CombatZoneManager {
             ConfigurationSection sec = root.getConfigurationSection(key);
             if (sec == null) continue;
 
+            // Локація спавну
             World w = Bukkit.getWorld(sec.getString("world", ""));
             if (w == null) continue;
             Location spawn = new Location(
@@ -104,8 +107,10 @@ public class CombatZoneManager {
                     sec.getDouble("y"),
                     sec.getDouble("z")
             );
+
             int scale = sec.getInt("scale_per_player", 2);
 
+            // Завантаження хвиль
             List<CombatWave> waves = new ArrayList<>();
             ConfigurationSection ws = sec.getConfigurationSection("waves");
             if (ws != null) {
@@ -118,6 +123,7 @@ public class CombatZoneManager {
                 }
             }
 
+            // Завантаження ефектів
             List<CombatEffect> effects = new ArrayList<>();
             ConfigurationSection es = sec.getConfigurationSection("effects");
             if (es != null) {
@@ -129,12 +135,11 @@ public class CombatZoneManager {
                 }
             }
 
-            // Нагороди
+            // Завантаження нагород
             List<ItemStack> rewards = new ArrayList<>();
             ConfigurationSection rs = sec.getConfigurationSection("rewards");
             if (rs != null) {
                 for (String rKey : rs.getKeys(false)) {
-                    // наприклад: rKey = "item0"
                     ItemStack is = rs.getItemStack(rKey);
                     if (is != null) rewards.add(is);
                 }
@@ -167,6 +172,7 @@ public class CombatZoneManager {
     public void saveZone(String key) {
         CombatZone zone = zones.get(key);
         if (zone == null) return;
+
         FileConfiguration cfg = plugin.getConfig();
         String base = "combatzones." + key;
 
@@ -214,8 +220,26 @@ public class CombatZoneManager {
         plugin.saveConfig();
     }
 
+    /** Додає одну хвилю до зони */
+    public void addWave(String zoneKey, CombatWave wave) {
+        CombatZone zone = zones.get(zoneKey);
+        if (zone != null) zone.getWaves().add(wave);
+    }
+
+    /** Додає один ефект до зони */
+    public void addEffect(String zoneKey, CombatEffect effect) {
+        CombatZone zone = zones.get(zoneKey);
+        if (zone != null) zone.getEffects().add(effect);
+    }
+
+    /** Додає один предмет-нагороду до зони */
+    public void addReward(String zoneKey, ItemStack reward) {
+        CombatZone zone = zones.get(zoneKey);
+        if (zone != null) zone.getRewards().add(reward);
+    }
+
+    /** Зберігає всі зони */
     public void saveAllZones() {
-        // Очистити розділ перед збереженням усіх
         plugin.getConfig().set("combatzones", null);
         for (String key : zones.keySet()) {
             saveZone(key);
@@ -226,6 +250,7 @@ public class CombatZoneManager {
     public CombatZone getZone(String key) {
         return zones.get(key);
     }
+
     public Set<String> getZoneKeys() {
         return zones.keySet();
     }

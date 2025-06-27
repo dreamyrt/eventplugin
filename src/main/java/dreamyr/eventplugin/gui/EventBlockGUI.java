@@ -21,7 +21,7 @@ public class EventBlockGUI {
     }
 
     public void openEventBlockGUI(Player player, String eventKey) {
-        Inventory gui = Bukkit.createInventory(null, 27, "Івент-Блок");
+        Inventory gui = Bukkit.createInventory(null, 27, "Івент-Блок: " + eventKey);
 
         // 🟡 Показати ресурси (слот 10)
         Map<Material, Integer> required = eventBlockManager.getRequiredResources(eventKey);
@@ -61,7 +61,8 @@ public class EventBlockGUI {
             int required = entry.getValue();
             int collected = playerInventory.getOrDefault(mat, 0);
 
-            String line = (collected >= required ? "§a" : "§c") + mat.name() + ": " + collected + "/" + required;
+            String line = (collected >= required ? "§a" : "§c")
+                    + mat.name() + ": " + collected + "/" + required;
             lore.add(line);
         }
 
@@ -75,7 +76,9 @@ public class EventBlockGUI {
         Map<Material, Integer> result = new HashMap<>();
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.getType() == Material.AIR) continue;
-            result.put(item.getType(), result.getOrDefault(item.getType(), 0) + item.getAmount());
+            result.put(item.getType(),
+                    result.getOrDefault(item.getType(), 0)
+                            + item.getAmount());
         }
         return result;
     }
